@@ -16,11 +16,21 @@ cloudinary.config(
 # Initialize Groq client
 client = Groq(api_key="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")
 
+def resize_image(image, max_size=800):
+    """Resize image while maintaining aspect ratio."""
+    width, height = image.size
+    if max(width, height) > max_size:
+        scaling_factor = max_size / max(width, height)
+        new_size = (int(width * scaling_factor), int(height * scaling_factor))
+        return image.resize(new_size, Image.LANCZOS)
+    return image
+
 def upload_image(image):
-    """Uploads an image to Cloudinary and returns the URL."""
+    """Uploads a resized image to Cloudinary."""
     try:
+        image = resize_image(image)  # Resize before upload
         img_bytes = BytesIO()
-        image.save(img_bytes, format="PNG")  # Convert to PNG format
+        image.save(img_bytes, format="PNG")  
         img_bytes.seek(0)
         response = cloudinary.uploader.upload(img_bytes)
         return response['secure_url']
